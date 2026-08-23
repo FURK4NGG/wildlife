@@ -1,14 +1,40 @@
 # wildlife
 
-yolov11l.hef  
-      ↓  
-HailoRT  
-      ↓  
-Hailo-8  
-      ↓  
+Camera  
+  ↓  
 Picamera2  
-      ↓  
-OpenCV preview  
+  ↓  
+Hailo-8  
+  ↓  
+yolov11l.hef  
+  ↓  
+Hailo NMS  
+  ↓  
+Bounding boxes  
+  ↓  
+OpenCV  
+
+
+
+Features  
+PIR modu  
+Continuous modu  
+Bear / Boar / Deer / Wolf tetikleme  
+Fotoğraf  
+Video  
+Video süresi  
+FPS min/max  
+FPS overlay  
+Raspberry Pi tarih/saat overlay  
+Class'a özel box renkleri  
+Default yeşil  
+Aynı dosyayı birden fazla class klasörüne koyma  
+outputs/bear/image  
+outputs/bear/video  
+Canlı kamera preview  
+JSON'dan ayar yönetimi  
+
+
 
 
 Hailo-8              ✅  
