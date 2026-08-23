@@ -1,5 +1,17 @@
 # wildlife
 
+sudo apt update
+sudo apt full-upgrade -y
+
+sudo apt install --reinstall \
+    python3-numpy \
+    python3-simplejpeg \
+    python3-picamera2 \
+    python3-gpiozero
+
+
+
+
 Camera  
   ↓  
 Picamera2  
@@ -16,10 +28,11 @@ OpenCV
 
 
 config.json  
-hailort.log  
+hailort.log(otomatik olusturulur)  
 labels.txt  
 wildlife_detector.py  
 yolov11l.hef  
+outputs/(otomatik olusturulu)  
 
 
 Features  
