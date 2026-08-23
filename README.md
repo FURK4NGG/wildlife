@@ -15,6 +15,12 @@ Bounding boxes
 OpenCV  
 
 
+config.json  
+hailort.log  
+labels.txt  
+wildlife_detector.py  
+yolov11l.hef  
+
 
 Features  
 PIR modu  
