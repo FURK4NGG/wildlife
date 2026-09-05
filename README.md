@@ -1,5 +1,20 @@
 # wildlife
 
+![wildlife Demo Image](https://github.com/FURK4NGG/wildlife/blob/main/%7B%7D/ai_camera_trap-1.webp)
+
+![wildlife Demo Image](https://github.com/FURK4NGG/wildlife/blob/main/%7B%7D/ai_camera_trap-2.webp)
+
+![wildlife Demo Image](https://github.com/FURK4NGG/wildlife/blob/main/%7B%7D/ai_camera_trap-3.webp)
+
+![wildlife Demo Image](https://github.com/FURK4NGG/wildlife/blob/main/%7B%7D/ai_camera_trap-4.webp)
+
+![wildlife Demo Image](https://github.com/FURK4NGG/wildlife/blob/main/%7B%7D/ai_camera_trap-5.webp)
+
+![wildlife Demo Image](https://github.com/FURK4NGG/wildlife/blob/main/%7B%7D/ai_camera_trap-6.webp)
+
+![wildlife Demo Image](https://github.com/FURK4NGG/wildlife/blob/main/%7B%7D/ai_camera_trap-7.webp)
+
+
 ```
 sudo apt update
 sudo apt full-upgrade -y
