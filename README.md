@@ -161,8 +161,11 @@ JSON'dan ayar yönetimi
 Hailo-8              ✅  
 HailoRT 4.20.0       ✅  
 yolov11l.hef         ✅  
-640x640x3            ✅  
 7 classes            ✅  
 Hailo NMS            ✅  
 labels.txt           ✅  
 Picamera2            ✅  
+IMX708 NoIR          ✅  
+1280×960 main        ✅  
+640×640 inference    ✅  
+Autofocus            ✅  
