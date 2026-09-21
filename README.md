@@ -74,23 +74,56 @@ source .venv/bin/activate
 python3 wildlife_detector.py OR python3 wildlife_detector_web.py(for real outworld usage)  
 
 
-Picamera2  
-    ↓  
-Camera  
-    ↓  
-Hailo-8  
-    ↓  
-yolov11l.hef  
-    ↓  
-Hailo NMS  
-    ↓  
-Bounding boxes  
-    ↓  
-wildlife_detector_hailo.py  
-    ↓  
-PIR / Continuous  
-    ↓  
-Image / Video  
+                    Raspberry Pi Camera
+                           │
+                           ▼
+                      Picamera2
+                           │
+                           ▼
+                         Camera
+                           │
+              ┌────────────┴────────────┐
+              │                         │
+          Main stream              Lores stream
+          1280×960                  640×640
+              │                         │
+              │                         ▼
+              │                    Hailo-8
+              │                         │
+              │                   yolov11l.hef
+              │                         │
+              │                    Hailo NMS
+              │                         │
+              │                         ▼
+              │                  Detections
+              │             (class / confidence / bbox)
+              │                         │
+              └────────────┬────────────┘
+                           │
+                           ▼
+                 wildlife_detector_web.py
+                           │
+                    ┌──────┴──────┐
+                    │             │
+                   PIR       Continuous
+                    │             │
+                    └──────┬──────┘
+                           │
+                           ▼
+                    Target classes
+                  Bear / Boar / Deer / Wolf
+                           │
+                           ▼
+                  Confidence threshold
+                           │
+                           ▼
+                 ┌─────────┴─────────┐
+                 │                   │
+              Image                Video
+                 │                   │
+                 ▼                   ▼
+           outputs/class/       outputs/class/
+              image/               video/
 
 
 config.json  
@@ -105,15 +138,18 @@ Features
 PIR modu  
 Continuous modu  
 Bear / Boar / Deer / Wolf tetikleme  
-Fotoğraf  
-Video  
+Fotoğraf çekme  
+Video keydetme  
 Video süresi  
 FPS min/max  
 FPS overlay  
 Raspberry Pi tarih/saat overlay  
-Class'a özel box renkleri  
-Default yeşil  
-Aynı dosyayı birden fazla class klasörüne koyma  
+Class'a özel bounding-box renkleri  
+Default yeşil bounding-box  
+Tespit edilen birden fazla class için aynı görüntüyü ilgili class klasörlerine kopyalama  
+Canlı kamera preview  
+Raspberry Pi üzerinde local web configuration server  
+Autofocus ayarları  
 outputs/bear/image  
 outputs/bear/video  
 Canlı kamera preview  
