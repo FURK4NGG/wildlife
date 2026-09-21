@@ -67,7 +67,7 @@ cat ~/Desktop/wildlife_YOLO/labels.txt
 RUN  
 cd ~/Desktop/wildlife_YOLO  
 source .venv/bin/activate  
-python3 wildlife_detector_hailo.py  
+python3 wildlife_detector.py OR python3 wildlife_detector_web.py(for real outworld usage)  
 
 
 Picamera2  
