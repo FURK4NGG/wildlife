@@ -15,6 +15,10 @@
 ![wildlife Demo Image](https://github.com/FURK4NGG/wildlife/blob/main/%7B%7D/ai_camera_trap-7.webp)
 
 
+<h1 align="center">webapp</h1>  
+
+![screenrec Demo GIF](https://github.com/FURK4NGG/wildlife/blob/main/{}/wildlife.gif)  
+
 ```
 sudo apt update
 sudo apt full-upgrade -y
