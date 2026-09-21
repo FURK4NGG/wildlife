@@ -53,7 +53,7 @@ hailortcli parse-hef ~/Desktop/wildlife_YOLO/yolov11l.hef
 >Score threshold: 0.200
 >IoU threshold: 0.70
 
-
+echo hailo_pci | sudo tee /etc/modules-load.d/hailo.conf  
 
 cat ~/Desktop/wildlife_YOLO/labels.txt  
 0 = bear  
