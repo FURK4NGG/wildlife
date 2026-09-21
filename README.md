@@ -17,7 +17,7 @@
 
 <h1 align="center">webapp</h1>  
 
-![screenrec Demo GIF](https://github.com/FURK4NGG/wildlife/blob/main/{}/wildlife.gif)  
+![wildlife Demo GIF](https://github.com/FURK4NGG/wildlife/blob/main/{}/wildlife.gif)  
 
 ```
 sudo apt update
