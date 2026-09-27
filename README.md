@@ -37,10 +37,18 @@
 - [x] Live Camera Preview  
 - [x] Local Web Configuration Server on Raspberry Pi  
 - [x] Autofocus Settings  
+- [x] Hailo-8  
+- [x] HailoRT 4.20.0  
+- [x] yolov11l.hef  
+- [x] 7 classes  
+- [x] Hailo NMS  
+- [x] Picamera2  
+- [x] IMX708 NoIR  
+- [x] 1280×960 main  
+- [x] 640×640 inference  
 - [x] outputs/bear/image  
 - [x] outputs/bear/video  
-- [x] JSON-Based Configuration Management  
-
+- [x] JSON-Based Configuration Management
 
 ## 📦 Setup
 
@@ -161,17 +169,3 @@ python3 wildlife_detector.py OR python3 wildlife_detector_web.py(for real outwor
                  ▼                   ▼
            outputs/class/       outputs/class/
               image/               video/
-
-
-
-Hailo-8              ✅  
-HailoRT 4.20.0       ✅  
-yolov11l.hef         ✅  
-7 classes            ✅  
-Hailo NMS            ✅  
-labels.txt           ✅  
-Picamera2            ✅  
-IMX708 NoIR          ✅  
-1280×960 main        ✅  
-640×640 inference    ✅  
-Autofocus            ✅  
