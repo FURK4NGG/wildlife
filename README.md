@@ -19,6 +19,31 @@
 
 ![wildlife Demo GIF](https://github.com/FURK4NGG/wildlife/blob/main/{}/wildlife.gif)  
 
+
+## 🚀 Features
+
+- [x] PIR Mode  
+- [x] Continuous Mode  
+- [x] Bear / Boar / Deer / Wolf Detection Triggers  
+- [x] Photo Capture  
+- [x] Video Recording  
+- [x] Configurable Video Duration  
+- [x] Minimum / Maximum FPS  
+- [x] FPS Overlay  
+- [x] Raspberry Pi Date / Time Overlay  
+- [x] Class-Specific Bounding Box Colors  
+- [x] Default Green Bounding Box  
+- [x] Multi-Class Image Copying to Relevant Class Folders  
+- [x] Live Camera Preview  
+- [x] Local Web Configuration Server on Raspberry Pi  
+- [x] Autofocus Settings  
+- [x] outputs/bear/image  
+- [x] outputs/bear/video  
+- [x] JSON-Based Configuration Management  
+
+
+## 📦 Setup
+
 ```
 sudo apt update
 sudo apt full-upgrade -y
@@ -29,6 +54,16 @@ sudo apt install --reinstall \
     python3-picamera2 \
     python3-gpiozero
 ```
+
+Directory Structure  
+~/.config/wildlife_YOLO/  
+├── config.json  
+├── hailort.log(This file is auto-generated)  
+├── labels.txt  
+├── wildlife_detector.py  
+├── yolov11l.hef  
+└── outputs/(This file is auto-generated)  
+<br>
 
 cd ~/Desktop/wildlife_YOLO  
 
@@ -60,19 +95,21 @@ hailortcli parse-hef ~/Desktop/wildlife_YOLO/yolov11l.hef
 echo hailo_pci | sudo tee /etc/modules-load.d/hailo.conf  
 
 cat ~/Desktop/wildlife_YOLO/labels.txt  
-0 = bear  
-1 = boar  
-2 = deer  
-3 = wolf  
-4 = cow  
-5 = person  
-6 = dog  
+>0 = bear  
+>1 = boar  
+>2 = deer  
+>3 = wolf  
+>4 = cow  
+>5 = person  
+>6 = dog  
 
-RUN  
+## 🎉 Run  
 cd ~/Desktop/wildlife_YOLO  
 source .venv/bin/activate  
 python3 wildlife_detector.py OR python3 wildlife_detector_web.py(for real outworld usage)  
 
+
+## ❓ HOW IT WORKS ❓  
 
                     Raspberry Pi Camera
                            │
@@ -124,37 +161,6 @@ python3 wildlife_detector.py OR python3 wildlife_detector_web.py(for real outwor
                  ▼                   ▼
            outputs/class/       outputs/class/
               image/               video/
-
-
-config.json  
-hailort.log(otomatik olusturulur)  
-labels.txt  
-wildlife_detector.py  
-yolov11l.hef  
-outputs/(otomatik olusturulu)  
-
-
-Features  
-PIR modu  
-Continuous modu  
-Bear / Boar / Deer / Wolf tetikleme  
-Fotoğraf çekme  
-Video keydetme  
-Video süresi  
-FPS min/max  
-FPS overlay  
-Raspberry Pi tarih/saat overlay  
-Class'a özel bounding-box renkleri  
-Default yeşil bounding-box  
-Tespit edilen birden fazla class için aynı görüntüyü ilgili class klasörlerine kopyalama  
-Canlı kamera preview  
-Raspberry Pi üzerinde local web configuration server  
-Autofocus ayarları  
-outputs/bear/image  
-outputs/bear/video  
-Canlı kamera preview  
-JSON'dan ayar yönetimi  
-
 
 
 
