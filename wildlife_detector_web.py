@@ -26,6 +26,7 @@ import shutil
 import signal
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import unquote, urlparse
 from datetime import datetime
 from pathlib import Path
 from threading import Event, Thread
@@ -48,185 +49,34 @@ WEB_CONFIG_LOCK = __import__("threading").Lock()
 
 
 WEB_HTML = r"""
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Wildlife Detector - Settings</title>
-<style>
-:root { color-scheme: dark; }
-body {
-    font-family: system-ui, sans-serif;
-    margin: 0; padding: 20px;
-    background: #101114; color: #eee;
-}
-main { max-width: 1100px; margin: auto; }
-h1 { margin-bottom: 6px; }
-.note { color: #aaa; margin-bottom: 20px; }
-section {
-    background: #191b20; border: 1px solid #30333a;
-    border-radius: 12px; padding: 16px; margin: 14px 0;
-}
-section h2 { margin-top: 0; font-size: 20px; }
-.field {
-    display: grid; grid-template-columns: minmax(180px, 1fr) minmax(180px, 2fr);
-    gap: 12px; align-items: center; margin: 9px 0;
-}
-label { color: #ddd; }
-input, textarea, select {
-    width: 100%; box-sizing: border-box;
-    background: #0f1013; color: #eee;
-    border: 1px solid #444851; border-radius: 7px;
-    padding: 9px;
-}
-textarea { min-height: 90px; font-family: monospace; }
-button {
-    border: 0; border-radius: 8px; padding: 11px 16px;
-    cursor: pointer; margin-right: 8px; font-weight: 600;
-}
-#save { background: #4caf50; color: white; }
-#reload { background: #444851; color: white; }
-#status { margin-top: 12px; color: #8bcf8b; }
-@media (max-width: 700px) {
-    .field { grid-template-columns: 1fr; }
-}
-</style>
-</head>
-<body>
-<main>
-<h1>Raspberry Pi Wildlife Detector</h1>
-<div class="note">
-    Local configuration panel. Changes are saved to <code>config.json</code>.
-    Restart the detector when a setting requires reinitialization.
-</div>
-<div id="settings"></div>
-<div>
-    <button id="save">Save settings</button>
-    <button id="reload">Reload</button>
-</div>
-<div id="status"></div>
-</main>
-
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Wildlife Detector</title>
+<style>body{font-family:system-ui;background:#101114;color:#eee;margin:0;padding:20px}main{max-width:1100px;margin:auto}section{background:#191b20;border:1px solid #30333a;border-radius:12px;padding:16px;margin:14px 0}h1{margin-bottom:5px}.note{color:#aaa}.statusbar{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}.status{padding:9px 13px;border-radius:8px;background:#333}.ok{background:#194d2a}.bad{background:#5a2020}button,.download{border:0;border-radius:8px;padding:10px 14px;cursor:pointer;margin:4px;font-weight:600}.primary{background:#4caf50;color:white}.secondary{background:#444851;color:white}.field{display:grid;grid-template-columns:1fr 2fr;gap:12px;margin:9px 0;align-items:center}input,textarea,select{box-sizing:border-box;width:100%;background:#0f1013;color:#eee;border:1px solid #444;padding:9px;border-radius:7px}textarea{min-height:90px;font-family:monospace}.colorrow{display:grid;grid-template-columns:1fr 55px;gap:8px}.file{display:flex;justify-content:space-between;gap:10px;background:#111318;border:1px solid #30333a;border-radius:8px;padding:9px;margin:6px 0}.download{background:#3f6ea8;color:#fff;text-decoration:none}@media(max-width:700px){.field{grid-template-columns:1fr}.file{flex-direction:column}}</style></head>
+<body><main><h1>Raspberry Pi Wildlife Detector</h1><div class="note">Local configuration and captured files.</div>
+<div class="statusbar"><div id="cam" class="status">Camera: checking...</div><div id="det" class="status">Detector: checking...</div></div>
+<section><h2>Camera Preview</h2><button class="primary" onclick="camera('open')">Open Camera</button><button class="secondary" onclick="camera('close')">Close Camera</button><div id="cammsg" class="note"></div></section>
+<section><h2>Captured Files</h2><div id="out" class="note">Output directory: loading...</div><button class="primary" onclick="files()">Browse</button><div id="files"></div></section>
+<div id="settings"></div><button class="primary" onclick="save()">Save settings</button><button class="secondary" onclick="load()">Reload</button><div id="msg" class="note"></div></main>
 <script>
-let config = {};
-
-function isObject(v) {
-    return v !== null && typeof v === "object" && !Array.isArray(v);
-}
-
-function makeInput(path, value) {
-    const wrap = document.createElement("div");
-    wrap.className = "field";
-
-    const label = document.createElement("label");
-    label.textContent = path.join(".");
-    wrap.appendChild(label);
-
-    let input;
-
-    if (typeof value === "boolean") {
-        input = document.createElement("select");
-        ["true", "false"].forEach(x => {
-            const o = document.createElement("option");
-            o.value = x; o.textContent = x;
-            if ((value && x === "true") || (!value && x === "false")) o.selected = true;
-            input.appendChild(o);
-        });
-        input.dataset.type = "boolean";
-    } else if (Array.isArray(value)) {
-        input = document.createElement("textarea");
-        input.value = value.map(x => typeof x === "object" ? JSON.stringify(x) : String(x)).join("\\n");
-        input.dataset.type = "array";
-    } else {
-        input = document.createElement("input");
-        input.value = String(value);
-        input.dataset.type = typeof value;
-    }
-
-    input.dataset.path = JSON.stringify(path);
-    wrap.appendChild(input);
-    return wrap;
-}
-
-function renderObject(obj, path = [], parent = document.getElementById("settings")) {
-    for (const [key, value] of Object.entries(obj)) {
-        const p = [...path, key];
-
-        if (isObject(value)) {
-            const section = document.createElement("section");
-            const h = document.createElement("h2");
-            h.textContent = p.join(".");
-            section.appendChild(h);
-            parent.appendChild(section);
-            renderObject(value, p, section);
-        } else {
-            parent.appendChild(makeInput(p, value));
-        }
-    }
-}
-
-function setAtPath(obj, path, value) {
-    let cur = obj;
-    for (let i = 0; i < path.length - 1; i++) cur = cur[path[i]];
-    cur[path[path.length - 1]] = value;
-}
-
-function parseValue(input) {
-    const t = input.dataset.type;
-    const raw = input.value;
-
-    if (t === "boolean") return raw === "true";
-    if (t === "number") {
-        const n = Number(raw);
-        if (Number.isNaN(n)) throw new Error("Invalid number: " + raw);
-        return n;
-    }
-    if (t === "array") {
-        return raw.split("\\n").map(x => x.trim()).filter(Boolean);
-    }
-    return raw;
-}
-
-function collect() {
-    const result = structuredClone(config);
-    for (const input of document.querySelectorAll("[data-path]")) {
-        setAtPath(result, JSON.parse(input.dataset.path), parseValue(input));
-    }
-    return result;
-}
-
-async function load() {
-    const r = await fetch("/api/config");
-    config = await r.json();
-    document.getElementById("settings").innerHTML = "";
-    renderObject(config);
-    document.getElementById("status").textContent = "Settings loaded.";
-}
-
-async function save() {
-    try {
-        const newConfig = collect();
-        const r = await fetch("/api/config", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify(newConfig)
-        });
-        const data = await r.json();
-        document.getElementById("status").textContent =
-            data.ok ? "Saved. Restart detector if needed." : ("Error: " + data.error);
-    } catch (e) {
-        document.getElementById("status").textContent = "Error: " + e.message;
-    }
-}
-
-document.getElementById("save").onclick = save;
-document.getElementById("reload").onclick = load;
+let config={};const obj=v=>v&&typeof v==='object'&&!Array.isArray(v);const norm=x=>String(x).trim().toLowerCase();
+function setat(o,p,v){let x=o;for(let i=0;i<p.length-1;i++)x=x[p[i]];x[p[p.length-1]]=v}
+function input(p,v){let w=document.createElement('div');w.className='field';let l=document.createElement('label');l.textContent=p.join('.');w.append(l);let i;
+if(typeof v==='boolean'){i=document.createElement('select');['true','false'].forEach(x=>{let o=document.createElement('option');o.value=x;o.textContent=x;o.selected=(v&&x==='true')||(!v&&x==='false');i.append(o)});i.dataset.type='boolean'}
+else if(Array.isArray(v)){i=document.createElement('textarea');i.value=v.join('\n');i.dataset.type='array'}
+else if(p.length>1&&p[p.length-2]==='box_colors'){let r=document.createElement('div');r.className='colorrow';i=document.createElement('input');i.value=v;i.dataset.type='string';let c=document.createElement('input');c.type='color';c.value=/^#[0-9a-f]{6}$/i.test(v)?v:'#00FF00';c.oninput=()=>i.value=c.value.toUpperCase();r.append(i,c);w.append(r);i.dataset.path=JSON.stringify(p);return w}
+else{i=document.createElement('input');i.value=v;i.dataset.type=typeof v}i.dataset.path=JSON.stringify(p);w.append(i);return w}
+function render(o,p=[],par=document.getElementById('settings')){for(let[k,v]of Object.entries(o)){if(k.startsWith('_'))continue;let q=[...p,k];if(obj(v)){let s=document.createElement('section'),h=document.createElement('h2');h.textContent=q.join('.');s.append(h);par.append(s);render(v,q,s)}else par.append(input(q,v))}}
+function collect(){let r=structuredClone(config);document.querySelectorAll('[data-path]').forEach(i=>{let t=i.dataset.type,v=i.value;if(t==='boolean')v=v==='true';else if(t==='number'){v=Number(v);if(Number.isNaN(v))throw Error('Invalid number')}else if(t==='array')v=v.split('\n').map(x=>x.trim()).filter(Boolean);setat(r,JSON.parse(i.dataset.path),v)});return r}
+function comments(a,b){for(let[k,v]of Object.entries(a)){if(k.startsWith('_'))b[k]=v;else if(obj(v)&&obj(b[k]))comments(v,b[k])}}
+function sync(c){c.detection??={};c.detection.box_colors??={};let cls=(c.detection.trigger_classes||[]).map(String).map(x=>x.trim()).filter(Boolean),want=new Set(cls.map(norm));for(let k of Object.keys(c.detection.box_colors))if(!want.has(norm(k)))delete c.detection.box_colors[k];for(let x of cls)if(!Object.keys(c.detection.box_colors).some(k=>norm(k)===norm(x)))c.detection.box_colors[x]='#00FF00'}
+async function load(){try{let r=await fetch('/api/config?x='+Date.now());config=await r.json();sync(config);document.getElementById('settings').innerHTML='';render(config);await status();await files()}catch(e){msg.textContent=e.message}}
+async function save(){try{let n=collect();comments(config,n);sync(n);let r=await fetch('/api/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(n)}),d=await r.json();if(!d.ok)throw Error(d.error);config=n;msg.textContent='Saved.';await load()}catch(e){msg.textContent=e.message}}
+async function status(){let s=await(await fetch('/api/status?x='+Date.now())).json(),c=document.getElementById('cam'),d=document.getElementById('det');c.textContent=s.camera_available?'Camera: CONNECTED':'Camera: NOT CONNECTED';c.className='status '+(s.camera_available?'ok':'bad');d.textContent=s.detector_running?'Detector: RUNNING':'Detector: NOT RUNNING';d.className='status '+(s.detector_running?'ok':'bad');out.textContent='Output directory: '+s.output_directory}
+async function camera(a){let d=await(await fetch('/api/camera/'+a,{method:'POST'})).json();cammsg.textContent=d.message||d.error;await status()}
+async function files(){let d=await(await fetch('/api/files?x='+Date.now())).json(),b=document.getElementById('files');b.innerHTML='';if(!d.files.length){b.textContent='No captured files.';return}for(let f of d.files){let r=document.createElement('div');r.className='file';let n=document.createElement('span');n.textContent=f.relative_path;let a=document.createElement('a');a.className='download';a.href='/download/'+encodeURIComponent(f.relative_path);a.textContent='Download';a.download=f.name;r.append(n,a);b.append(r)}}
 load();
-</script>
-</body>
-</html>
+</script></body></html>
 """
+
 
 
 def _write_config_atomic(config):
@@ -239,60 +89,105 @@ def _write_config_atomic(config):
     temporary.replace(CONFIG_PATH)
 
 
-class ConfigWebHandler(BaseHTTPRequestHandler):
-    """Small dependency-free web UI for the Raspberry Pi local network."""
+def configured_output_root():
+    config = load_config()
+    directory = Path(get_config(config, "output", "directory", default="outputs"))
+    if not directory.is_absolute():
+        directory = BASE_DIR / directory
+    directory.mkdir(parents=True, exist_ok=True)
+    return directory
 
+
+def camera_available():
+    try:
+        return bool(Picamera2.global_camera_info())
+    except Exception:
+        return False
+
+
+def list_output_files():
+    root = configured_output_root()
+    files = []
+    for path in root.rglob("*"):
+        if path.is_file() and not path.name.startswith(".temporary_"):
+            files.append({"name": path.name, "relative_path": str(path.relative_to(root))})
+    files.sort(key=lambda x: x["relative_path"].lower())
+    return files
+
+
+class ConfigWebHandler(BaseHTTPRequestHandler):
     def _send_json(self, payload, status=200):
-        data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+        data=json.dumps(payload, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
-        self.send_header("Content-Type", "application/json; charset=utf-8")
-        self.send_header("Content-Length", str(len(data)))
+        self.send_header("Content-Type","application/json; charset=utf-8")
+        self.send_header("Content-Length",str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def _send_file(self, path):
+        try: data=path.read_bytes()
+        except OSError: return self._send_json({"error":"File not found."},404)
+        self.send_response(200)
+        self.send_header("Content-Type","application/octet-stream")
+        self.send_header("Content-Disposition",f'attachment; filename="{path.name}"')
+        self.send_header("Content-Length",str(len(data)))
         self.end_headers()
         self.wfile.write(data)
 
     def do_GET(self):
-        if self.path == "/":
-            data = WEB_HTML.encode("utf-8")
-            self.send_response(200)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.send_header("Content-Length", str(len(data)))
-            self.end_headers()
-            self.wfile.write(data)
-            return
-
-        if self.path == "/api/config":
+        parsed=urlparse(self.path); path=parsed.path
+        if path=="/":
+            data=WEB_HTML.encode("utf-8")
+            self.send_response(200); self.send_header("Content-Type","text/html; charset=utf-8")
+            self.send_header("Content-Length",str(len(data))); self.end_headers(); self.wfile.write(data); return
+        if path=="/api/config":
             try:
                 with WEB_CONFIG_LOCK:
-                    current = load_config()
+                    current=load_config()
+                    det=current.setdefault("detection",{})
+                    classes=det.setdefault("trigger_classes",[])
+                    colors=det.setdefault("box_colors",{})
+                    wanted={normalise_class(x) for x in classes}
+                    changed=False
+                    for k in list(colors):
+                        if normalise_class(k) not in wanted: del colors[k]; changed=True
+                    for c in classes:
+                        if not any(normalise_class(k)==normalise_class(c) for k in colors):
+                            colors[c]="#00FF00"; changed=True
+                    if changed: _write_config_atomic(current)
                 self._send_json(current)
-            except Exception as exc:
-                self._send_json({"error": str(exc)}, 500)
+            except Exception as e: self._send_json({"error":str(e)},500)
             return
-
-        self._send_json({"error": "Not found"}, 404)
+        if path=="/api/status":
+            self._send_json({"camera_available":camera_available(),"detector_running":not STOP_EVENT.is_set(),"output_directory":str(configured_output_root()),"camera_preview_requested":CAMERA_PREVIEW_REQUEST.is_set()}); return
+        if path=="/api/files":
+            try: self._send_json({"files":list_output_files()})
+            except Exception as e: self._send_json({"error":str(e)},500)
+            return
+        if path.startswith("/download/"):
+            root=configured_output_root().resolve(); rel=unquote(path[len("/download/"):]); requested=(root/rel).resolve()
+            if requested!=root and root not in requested.parents: return self._send_json({"error":"Invalid path."},403)
+            if not requested.is_file(): return self._send_json({"error":"File not found."},404)
+            self._send_file(requested); return
+        self._send_json({"error":"Not found"},404)
 
     def do_POST(self):
-        if self.path != "/api/config":
-            self._send_json({"error": "Not found"}, 404)
+        parsed=urlparse(self.path); path=parsed.path
+        if path=="/api/config":
+            try:
+                length=int(self.headers.get("Content-Length","0"))
+                if length<=0 or length>2_000_000: raise ValueError("Invalid request size.")
+                new_config=json.loads(self.rfile.read(length).decode("utf-8"))
+                if not isinstance(new_config,dict): raise ValueError("Configuration must be a JSON object.")
+                with WEB_CONFIG_LOCK: _write_config_atomic(new_config)
+                self._send_json({"ok":True})
+            except Exception as e: self._send_json({"ok":False,"error":str(e)},400)
             return
-
-        try:
-            length = int(self.headers.get("Content-Length", "0"))
-            if length <= 0 or length > 2_000_000:
-                raise ValueError("Invalid request size.")
-
-            body = self.rfile.read(length)
-            new_config = json.loads(body.decode("utf-8"))
-
-            if not isinstance(new_config, dict):
-                raise ValueError("Configuration must be a JSON object.")
-
-            with WEB_CONFIG_LOCK:
-                _write_config_atomic(new_config)
-
-            self._send_json({"ok": True})
-        except Exception as exc:
-            self._send_json({"ok": False, "error": str(exc)}, 400)
+        if path=="/api/camera/open":
+            CAMERA_PREVIEW_REQUEST.set(); self._send_json({"ok":True,"message":"Camera preview opened/requested."}); return
+        if path=="/api/camera/close":
+            CAMERA_PREVIEW_REQUEST.clear(); self._send_json({"ok":True,"message":"Camera preview closed/requested."}); return
+        self._send_json({"error":"Not found"},404)
 
     def log_message(self, format, *args):
         print(f"[WEB] {self.address_string()} - {format % args}")
@@ -334,6 +229,8 @@ def start_web_server():
 BASE_DIR = Path(__file__).resolve().parent
 CONFIG_PATH = BASE_DIR / "config.json"
 STOP_EVENT = Event()
+CAMERA_PREVIEW_REQUEST = Event()
+CAMERA_PREVIEW_REQUEST.set()
 
 
 # ---------------------------------------------------------------------------
@@ -900,6 +797,14 @@ def preview_enabled(config):
 
 def show_preview(frame, config, detections=None, fps=0.0):
     if not preview_enabled(config):
+        return False
+
+    window_name = str(get_config(config, "preview", "window_name", default="Wildlife Detector"))
+    if not CAMERA_PREVIEW_REQUEST.is_set():
+        try:
+            cv2.destroyWindow(window_name)
+        except cv2.error:
+            pass
         return False
 
     display = frame.copy()
