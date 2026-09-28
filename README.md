@@ -91,6 +91,7 @@ python3 -c "from gpiozero import MotionSensor; print('gpiozero OK')"
 
 python3 -c "from hailo_platform import HEF, VDevice; print('HailoRT Python OK')"  
 >hailortcli fw-control identify  
+
 sudo modprobe hailo_pci  
 
 hailortcli parse-hef ~/Desktop/wildlife_YOLO/yolov11l.hef  
