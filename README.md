@@ -39,7 +39,7 @@
 - [x] Autofocus Settings  
 - [x] Hailo-8  
 - [x] HailoRT 4.20.0  
-- [x] yolov11l.hef  
+- [x] yolov11l model  
 - [x] 7 classes  
 - [x] Hailo NMS  
 - [x] Picamera2  
