@@ -1,4 +1,5 @@
 ## 👀 wildlife Overview  
+A Raspberry Pi and Hailo-8-based smart camera system that uses AI to detect animals and capture photos and videos  
 
 ![wildlife Demo Image](https://github.com/FURK4NGG/wildlife/blob/main/%7B%7D/ai_camera_trap-1.webp)
 
