@@ -51,7 +51,16 @@ A Raspberry Pi and Hailo-8-based smart camera system that uses AI to detect anim
 - [x] outputs/bear/video  
 - [x] JSON-Based Configuration Management
 
-## 📦 Setup
+## 📦 Setup  
+Directory Structure  
+~/.config/wildlife_YOLO/  
+├── config.json  
+├── hailort.log(This file is auto-generated)  
+├── labels.txt  
+├── wildlife_detector.py  
+├── yolov11l.hef  
+└── outputs/(This file is auto-generated)  
+<br>
 
 ```
 sudo apt update
@@ -63,16 +72,6 @@ sudo apt install --reinstall \
     python3-picamera2 \
     python3-gpiozero
 ```
-
-Directory Structure  
-~/.config/wildlife_YOLO/  
-├── config.json  
-├── hailort.log(This file is auto-generated)  
-├── labels.txt  
-├── wildlife_detector.py  
-├── yolov11l.hef  
-└── outputs/(This file is auto-generated)  
-<br>
 
 cd ~/Desktop/wildlife_YOLO  
 
