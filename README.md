@@ -95,7 +95,6 @@ sudo depmod -a
 
 rm -rf .venv  
 
-echo "blacklist hailo_pci" | sudo tee /etc/modprobe.d/hailo-blacklist.conf > /dev/null
 sudo depmod -a  
 
 python3 -m venv --system-site-packages .venv  
