@@ -20,8 +20,11 @@ A Raspberry Pi and Hailo-8-based smart camera system that uses AI to detect anim
 
 ![wildlife Demo GIF](https://github.com/FURK4NGG/wildlife/blob/main/{}/wildlife.gif)  
 
+<br>
+
 <details>
 <summary>Training Images (Training-80/Test-10/Validation-10)</summary>
+    
 >1701 = bear  
 >1492 = boar  
 >3024 = deer  
