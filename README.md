@@ -23,7 +23,7 @@ A Raspberry Pi and Hailo-8-based smart camera system that uses AI to detect anim
 <br>
 
 <details>
-<summary>Training Images Numbers (Training-80/Test-10/Validation-10)</summary>
+<summary>Training Images Numbers (Training %80/ Test %10/ Validation %10)</summary>
     
 >1701 = bear  
 >1492 = boar  
