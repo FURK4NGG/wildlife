@@ -90,6 +90,9 @@ cd ~/Desktop/wildlife_YOLO
 
 rm -rf .venv  
 
+sudo rm -f /etc/modprobe.d/hailo-blacklist.conf  
+sudo depmod -a  
+
 python3 -m venv --system-site-packages .venv  
 source .venv/bin/activate  
 
