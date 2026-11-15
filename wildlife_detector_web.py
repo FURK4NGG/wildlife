@@ -743,49 +743,37 @@ def configure_autofocus(camera, config):
     )
 
 
+
 def create_camera(config):
-    camera = Picamera2()
+    camera = None
+    for attempt in range(5):
+        if Picamera2.global_camera_info():
+            camera = Picamera2()
+            break
+        time.sleep(1.5)
 
-    width = int(
-        get_config(config, "camera", "width", default=1280)
-    )
-    height = int(
-        get_config(config, "camera", "height", default=960)
-    )
+    if camera is None:
+        raise RuntimeError("Kamera algılanamadı! Kablo bağlantısını veya /boot/firmware/config.txt ayarını kontrol edin.")
 
+    width = int(get_config(config, "camera", "width", default=1280))
+    height = int(get_config(config, "camera", "height", default=960))
     fps = camera_fps(config)
+    frame_duration = int(1_000_000 / fps)
 
-    main = {
-        "size": (width, height),
-        "format": "XRGB8888"
-    }
-
-    # The HEF requires 640x640x3 UINT8.
-    # RGB888 is supplied directly to Hailo by the Picamera2 Hailo helper.
-    lores = {
-        "size": (640, 640),
-        "format": "RGB888"
-    }
-
-    controls = {
-        "FrameRate": fps
-    }
-
-    camera_config = camera.create_preview_configuration(
-        main=main,
-        lores=lores,
-        controls=controls
+    cam_config = camera.create_video_configuration(
+        main={"size": (width, height), "format": "XRGB8888"},
+        lores={"size": (640, 640), "format": "RGB888"},
+        controls={"FrameDurationLimits": (frame_duration, frame_duration)},
     )
-
-    camera.configure(camera_config)
+    camera.configure(cam_config)
     camera.start()
 
-    configure_autofocus(camera, config)
-
-    time.sleep(2)
+    try:
+        configure_autofocus(camera, config)
+    except Exception as exc:
+        print(f"Autofocus warning: {exc}")
 
     return camera
-
 
 # ---------------------------------------------------------------------------
 # LIVE PREVIEW
@@ -945,6 +933,9 @@ def record_video(
             if show_preview(annotated, config, None, current_fps):
                 STOP_EVENT.set()
                 break
+            
+            if annotated.shape[2] == 4:
+                annotated = cv2.cvtColor(annotated, cv2.COLOR_BGRA2BGR)
 
             writer.write(annotated)
 
@@ -1464,7 +1455,8 @@ def main():
 
     finally:
         close_preview(config)
-        camera.stop()
+        if camera is not None:
+            camera.stop()
         web_server.shutdown()
         web_server.server_close()
 

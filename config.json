@@ -1,12 +1,12 @@
 {
-    "mode": "pir",
+    "mode": "continuous",
     "_mode_comment": "pir = PIR-triggered operation; continuous = continuous detection.",
     "model": {
         "path": "yolov11l.hef",
         "_path_comment": "Hailo HEF model file used for inference.",
         "labels": "labels.txt",
         "_labels_comment": "Text file containing one class name per line, in the same order as the HEF class IDs.",
-        "confidence": 0.5,
+        "confidence": 0.7,
         "_confidence_comment": "Minimum detection confidence. Detections below this value are ignored."
     },
     "camera": {
@@ -34,7 +34,7 @@
         "_comment": "Settings for PIR-triggered operation.",
         "gpio_pin": 13,
         "_gpio_pin_comment": "GPIO pin connected to the PIR sensor.",
-        "cooldown_seconds": 2.0,
+        "cooldown_seconds": 2,
         "_cooldown_comment": "Minimum time between two PIR-triggered events.",
         "capture": {
             "image": true,
@@ -48,21 +48,21 @@
     },
     "continuous": {
         "_comment": "Settings for continuous detection operation.",
-        "cooldown_seconds": 10.0,
+        "cooldown_seconds": 10,
         "_cooldown_comment": "Minimum time between two continuous capture events.",
         "capture": {
-            "image": true,
-            "video": false
+            "image": false,
+            "video": true
         },
         "_capture_comment": "Set image and/or video to true to choose what is captured."
     },
     "video": {
         "_comment": "Global video recording settings shared by PIR and continuous modes.",
-        "seconds": 10,
+        "seconds": 5,
         "_seconds_comment": "Video duration in seconds.",
         "fps": 15,
         "_fps_comment": "Video recording FPS. The value is clamped between camera.fps_min and camera.fps_max.",
-        "codec": "mp4v",
+        "codec": "avc1",
         "_codec_comment": "OpenCV four-character video codec used for saved video files."
     },
     "overlay": {
@@ -88,14 +88,16 @@
             "bear",
             "boar",
             "wolf",
-            "deer"
+            "deer",
+            "person"
         ],
         "_trigger_classes_comment": "Only these classes can trigger capture events. Other detected classes can still have boxes displayed.",
         "box_colors": {
             "bear": "#FF8C00",
             "boar": "#8B4513",
             "wolf": "#808080",
-            "deer": "#D2691E"
+            "deer": "#D2691E",
+            "person": "#A51D2D"
         },
         "_box_colors_comment": "Per-class bounding-box colours in #RRGGBB format. Classes without a custom colour use default_box_color.",
         "default_box_color": "#00FF00",
